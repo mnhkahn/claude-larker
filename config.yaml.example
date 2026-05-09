@@ -1,0 +1,57 @@
+server:
+  port: 8765
+  host: "127.0.0.1"
+
+lark:
+  # 飞书 / Lark 开放平台域名
+  # 国内飞书: https://open.feishu.cn (默认)
+  # 国际版 Lark: https://open.larksuite.com
+  base_url: "https://open.feishu.cn"
+
+  # 应用凭证
+  # 获取方式:
+  #   1. 打开 https://open.feishu.cn/app (或对应域名)
+  #   2. 创建「企业自建应用」
+  #   3. 进入应用详情页 →「凭证与基础信息」
+  #   4. 复制 App ID 和 App Secret
+  # 权限要求:
+  #   - im:message:send_as_bot (机器人发送消息)
+  #   - im:message.group_msg (群聊消息，如发送到群)
+  #   - im:message:p2p_msg (单聊消息，如发送到个人)
+  #   - im:chat:readonly (读取群信息，如需获取群ID)
+  app_id: "cli_xxx"
+  app_secret: "xxx"
+
+  # 消息接收方式
+  # receiver_type: "chat_id"  发送到群聊 (推荐，把机器人拉到群里)
+  # receiver_type: "open_id"  发送到个人
+  receiver_type: "chat_id"
+
+  # 接收者 ID
+  #
+  # 如果 receiver_type = "chat_id" (群):
+  #   获取方式:
+  #   1. 把机器人加入目标群聊
+  #   2. 在群设置页面底部找到「群ID」并复制
+  #   3. 或者: 在群里@机器人发消息，webhook 回调里 event.message.chat_id 就是群ID
+  #   ID 格式: "oc_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  #
+  # 如果 receiver_type = "open_id" (个人):
+  #   获取方式:
+  #   1. 给机器人发一条消息
+  #   2. 查看 webhook 日志中 event.sender.sender_id.open_id
+  #   3. 或者调用 API: POST /open-apis/contact/v3/users/batch_get_id
+  #   ID 格式: "ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  receiver_id: "oc_xxx"
+
+tmux:
+  session_prefix: "larker"
+  keep_sessions: false  # true 则完成后不结束会话
+
+timeout:
+  confirmation: 3600  # 单位：秒，默认 1 小时
+
+log:
+  file: "~/.larker/larker.log"
+  level: "info"       # debug, info, warn, error
+  max_size_mb: 10     # 单文件上限，超过则创建新文件

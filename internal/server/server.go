@@ -36,8 +36,9 @@ type Server struct {
 
 	allowedDevices map[string]bool // auto-approved terminals
 
-	ccSessions map[string]*CCSession // keyed by CC session_id
-	botOpenID  string                // bot's own open_id for @mention filtering
+	ccSessions   map[string]*CCSession // keyed by CC session_id
+	botOpenID    string                // bot's own open_id for @mention filtering
+	excludePaths []string              // CWD substrings to filter out (e.g. CodexBar paths)
 
 	pendingReaction struct {
 		MessageID  string
@@ -184,6 +185,7 @@ func New(cfg *config.Config, log *logger.Logger) *Server {
 		activeLoops:    make(map[string]*ActiveLoop),
 		allowedDevices: make(map[string]bool),
 		ccSessions:     make(map[string]*CCSession),
+		excludePaths:   cfg.Filter.ExcludePaths,
 	}
 
 	s.wsClient = lark.NewWSClient(cfg.Lark.AppID, cfg.Lark.AppSecret, cfg.Lark.BaseURL, log)
@@ -300,6 +302,20 @@ func (s *Server) cleanupLoop() {
 	}
 }
 
+// isCwdExcluded checks if the hook event's CWD matches any excluded path substring.
+// Returns true if the event should be silently dropped.
+func (s *Server) isCwdExcluded(cwd string) bool {
+	if cwd == "" || len(s.excludePaths) == 0 {
+		return false
+	}
+	for _, p := range s.excludePaths {
+		if strings.Contains(cwd, p) {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -316,6 +332,12 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.log.Info("WS request: phase=%s tool=%s notification_type=%s", req.Phase, req.ToolName, req.NotificationType)
+
+		// Filter: silently drop events from excluded CWD paths (e.g. CodexBar probes).
+		if s.isCwdExcluded(req.Cwd) {
+			s.log.Debug("WS request filtered (excluded CWD): phase=%s cwd=%s", req.Phase, req.Cwd)
+			continue
+		}
 
 		switch req.Phase {
 		case "pre":

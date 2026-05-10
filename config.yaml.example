@@ -51,6 +51,13 @@ tmux:
 timeout:
   confirmation: 3600  # 单位：秒，默认 1 小时
 
+# 过滤规则
+# 某些工具（如 CodexBar）也会触发 Claude Code 的 hook，
+# 产生无关的飞书通知。在此配置要过滤的路径子串即可忽略。
+filter:
+  exclude_paths:
+    - "CodexBar/ClaudeProbe"   # 过滤 CodexBar 探针
+
 log:
   file: "~/.larker/larker.log"
   level: "info"       # debug, info, warn, error

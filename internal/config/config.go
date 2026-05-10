@@ -15,6 +15,13 @@ type Config struct {
 	Tmux    TmuxConfig    `yaml:"tmux"`
 	Timeout TimeoutConfig `yaml:"timeout"`
 	Log     LogConfig     `yaml:"log"`
+	Filter  FilterConfig  `yaml:"filter"`
+}
+
+type FilterConfig struct {
+	// ExcludePaths is a list of path substrings. Any hook event whose CWD contains one of these
+	// substrings is silently ignored. Use this to filter out noise from tools like CodexBar.
+	ExcludePaths []string `yaml:"exclude_paths"`
 }
 
 type ServerConfig struct {
